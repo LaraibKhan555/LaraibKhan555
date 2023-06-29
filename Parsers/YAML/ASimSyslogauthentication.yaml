@@ -1,0 +1,45 @@
+Parser:
+  Title: Authentication Success and Authentication Failure Parser for Syslog
+  Version: '1.0.0'
+  LastUpdated: Oct 20 2022
+Product:
+  Name: Security Events
+Normalization:
+  Schema: Authentication
+  Version: '0.1.0'
+References:
+- Title: ASIM Authentication
+  Link: https://learn.microsoft.com/en-us/azure/sentinel/authentication-normalization-schema
+- Title: ASIM
+  Link: https://aka.ms/AboutASIM
+Description: |
+    This ASIM parser supports normalizing Syslog Authentication evnets collected from syslog table and put into the ASIM Authentication normalized schema. 
+ParserName: ASimSyslogAuthentication
+ParserParams:
+  - Name: disabled
+    Type: bool
+    Default: false
+ParserQuery: |
+  let SyslogAuthenticationSuccess = Syslog
+    | where SyslogMessage contains 'accepted password'
+    | parse SyslogMessage with Activity: string ' for ' TargetUserName ' from ' IpAddress ' port ' IpPort ' ' Protocol
+    | extend    EventVendor = 'Linux',    EventProduct = 'Syslog',    EventCount=int(1),    EventSchemaVersion='0.1.0',    EventResult = 'Success',    EventStartTime = TimeGenerated,    EventEndTime= TimeGenerated,    EventType= 'Logon',    SrcDvcId=tostring(Computer),    SrcDvcHostname =tostring(HostName),    SrcDvcOs=tostring(Computer)
+    | project-rename EventOriginalUid =ProcessID, LogonMethod  = ProcessName
+    | project-reorder    TimeGenerated,    EventProduct,    EventOriginalUid,    EventResult,    EventStartTime,    EventEndTime,    LogonMethod,    SrcDvcId,    SrcDvcHostname,    SrcDvcOs;
+  let SyslogAuthenticationFailed = Syslog 
+    | where  Facility has 'authpriv' and SeverityLevel has 'info' and SyslogMessage contains 'Failed password for'
+    | parse SyslogMessage with Activity:string ' for ' TargetUserName ' from ' IPAddress ' port ' IpPort ' ' Protocol 
+    | extend EventVendor = 'Linux', EventProduct = 'Syslog', EventCount=int(1), EventSchemaVersion='0.1.0', EventResult = iff (Facility ==0, 'Success', 'Failure'),EventOriginalResultDetails = coalesce(Facility, SeverityLevel), EventStartTime = TimeGenerated, EventEndTime= TimeGenerated, EventType= 'Logon', SrcDvcId=tostring(Computer), SrcDvcHostname =tostring(HostName), SrcDvcOs=tostring(SourceSystem), EventOriginalUid=tostring(ProcessID)
+    | project-rename LogonMethod  = ProcessName 
+    | project-reorder TimeGenerated, EventProduct, EventOriginalUid, EventResult, EventOriginalResultDetails, EventStartTime, EventEndTime, LogonMethod, SrcDvcId, SrcDvcHostname, SrcDvcOs 
+    | where TargetUserName !contains 'invalid user';
+  let SyslogAuthenticationFailedwithInvalidUser = Syslog 
+    | where SyslogMessage contains 'failed password' and SeverityLevel == 'info'
+    | parse SyslogMessage with Activity:string ' for ' TargetUserName ' from ' IpAddress  ' port ' IpPort  ' ' Protocol 
+    | where TargetUserName contains 'invalid user' 
+    | extend tmp_Username = split(TargetUserName,' ') 
+    | extend TargetUserName = tostring(tmp_Username[2]) 
+    | extend EventVendor = 'Linux'  , EventProduct = 'Syslog'  , EventCount=int(1)  , EventSchemaVersion='0.1.0'  , EventResult = iff (Facility ==0,'Success', 'Failure')  , EventStartTime = TimeGenerated  , EventEndTime= TimeGenerated  , EventType= 'Logon'  , SrcDvcId=tostring(Computer)  , SrcDvcHostname =tostring(HostName)  , SrcDvcOs=tostring(Computer) 
+    | project-rename     EventOriginalUid =ProcessID     , LogonMethod  = ProcessName 
+    | project-reorder     TimeGenerated     ,EventProduct     , EventOriginalUid     , EventResult     , EventStartTime     , EventEndTime     , LogonMethod      , SrcDvcId     , SrcDvcHostname      , SrcDvcOs;
+  union SyslogAuthenticationFailed, SyslogAuthenticationSuccess, SyslogAuthenticationFailedwithInvalidUser

@@ -1,0 +1,56 @@
+Parser:
+  Title: Authentication Success and Authentication Failure Parser for 'SCALS' CEF
+  Version: '1.0.0'
+  LastUpdated: Apr 04 2023
+Product:
+  Name: Common Event Format (CEF)
+Normalization:
+  Schema: Authentication
+  Version: '0.1.0'
+References:
+- Title: ASIM Authentication
+  Link: https://learn.microsoft.com/en-us/azure/sentinel/authentication-normalization-schema
+- Title: ASIM
+  Link: https://aka.ms/AboutASIM
+Description: |
+    This ASIM parser supports normalizing SCALS CEF Authentication evnets collected from CommonSecurityLog table and put into the ASIM Authentication normalized schema. 
+ParserName: ASimCEFAuthentication
+ParserParams:
+  - Name: enabled
+    Type: bool
+    Default: false
+ParserQuery: | 
+  CommonSecurityLog
+  | where DeviceEventClassID has_any (1005, 1006)
+  | extend
+  EventVendor = 'Securiment'
+  , EventProduct = 'SCALS'
+  , EventCount=int(1)
+  , EventSchemaVersion='0.1.0'
+  , EventResult = EventOutcome
+  , EventOriginalResultDetails = coalesce(SimplifiedDeviceAction, Activity)
+  , EventStartTime = TimeGenerated
+  , EventEndTime= TimeGenerated
+  , EventType= 'Logon'
+  , SrcDvcId=DeviceVersion
+  , SrcDvcHostname =DeviceName
+  , SrcDvcIpAddr=SourceIP
+  | project-rename
+     EventOriginalUid =DeviceEventClassID
+     , TargetUserId =  SourceUserID
+     , TargetUsername = DestinationUserName
+     , TargetUserType = SourceUserPrivileges
+     , EventResultDetails = Reason
+  | project-reorder
+     TimeGenerated
+     ,EventProduct
+     , EventOriginalUid
+     , EventResult
+     , EventResultDetails
+     , EventStartTime
+     , EventEndTime 
+     , TargetUserId
+     , TargetUsername
+     , SrcDvcId
+     , SrcDvcHostname 
+     , SrcDvcIpAddr
