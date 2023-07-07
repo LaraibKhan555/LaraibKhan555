@@ -8,7 +8,7 @@ Bicep files have the extension .bicep and are compiled into ARM templates (.json
 
 Some key features of Bicep include:
 
-1- Concise Syntax: Bicep uses a cleaner syntax compared to JSON, making it easier to read, write, and maintain code.
+1. Concise Syntax: Bicep uses a cleaner syntax compared to JSON, making it easier to read, write, and maintain code.
 
 2- Modularity and Reusability: Bicep supports modules, allowing you to define reusable code snippets that can be shared across deployments.
 
