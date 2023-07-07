@@ -10,13 +10,13 @@ Some key features of Bicep include:
 
 1. Concise Syntax: Bicep uses a cleaner syntax compared to JSON, making it easier to read, write, and maintain code.
 
-2- Modularity and Reusability: Bicep supports modules, allowing you to define reusable code snippets that can be shared across deployments.
+2. Modularity and Reusability: Bicep supports modules, allowing you to define reusable code snippets that can be shared across deployments.
 
-3- Strong Typing: Bicep provides strong typing and compile-time validation, which helps catch errors early and improves the development experience.
+3. Strong Typing: Bicep provides strong typing and compile-time validation, which helps catch errors early and improves the development experience.
 
-4- IntelliSense and Tooling Support: Bicep integrates with popular code editors and provides IntelliSense, auto-completion, and error checking, enhancing developer productivity.
+4. IntelliSense and Tooling Support: Bicep integrates with popular code editors and provides IntelliSense, auto-completion, and error checking, enhancing developer productivity.
 
-5- Incremental Deployment: Bicep supports incremental deployment, enabling you to update and deploy only the necessary changes to your infrastructure.
+5. Incremental Deployment: Bicep supports incremental deployment, enabling you to update and deploy only the necessary changes to your infrastructure.
 
 Overall, Bicep simplifies the process of defining and deploying Azure resources while maintaining compatibility with ARM templates. It provides a more efficient and developer-friendly way to work with Azure deployments.
 
