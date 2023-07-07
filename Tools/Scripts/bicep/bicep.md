@@ -6,7 +6,7 @@ ARM templates are JSON files used to define the desired state of Azure resources
 
 Bicep files have the extension .bicep and are compiled into ARM templates (.json files) before deployment. Bicep leverages the existing ARM template ecosystem and supports all the capabilities and resource types available in ARM templates.
 
-Some key features of Bicep include:
+## Some key features of Bicep include:
 
 1. Concise Syntax: Bicep uses a cleaner syntax compared to JSON, making it easier to read, write, and maintain code.
 
