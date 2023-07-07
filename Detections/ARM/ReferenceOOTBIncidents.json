@@ -1,0 +1,132 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspace": {
+        "type": "String"
+      }
+    },
+    "resources": [
+      {
+        "name": "[concat(parameters('workspace'), '/Microsoft.SecurityInsights/90bf53b7-715f-4e78-9e60-bfb85fa967a8')]",
+        "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+        "kind": "Scheduled",
+        "apiVersion": "2022-11-01-preview",
+        "properties": {
+          "displayName": "Reference OOTB Incidents from Customer Workspace",
+          "description": "This rule triggers a new incident based on OOTB incidents coming in a reference workspace. This rule also exclude everything from Azure Sentinel source",
+          "severity": "Informational",
+          "enabled": true,
+          "query": "let incident = SecurityIncident\n    | extend ProviderName = tostring(parse_json(tostring(AdditionalData.alertProductNames))[0])\n    | where ProviderName <> \"Azure Sentinel\" //excluding Azure Sentinel\n    | extend AlertId = tostring(AlertIds[0]);\nlet alert = SecurityAlert\n    | extend AlertId = SystemAlertId\n    | extend EntitiesDynamicArray=parse_json(Entities)\n    | mvexpand EntitiesDynamicArray\n    | extend Entitytype = tostring(parse_json(EntitiesDynamicArray).Type)\n    | where Entitytype == \"account\" //parsing entity type account\n    | extend username=tostring(parse_json(EntitiesDynamicArray).Name)\n    | extend UPNSuffix=tostring(parse_json(EntitiesDynamicArray).UPNSuffix)\n    | extend useraccount = strcat(username, UPNSuffix)\n    | extend UserPrincipalName = tostring(parse_json(EntitiesDynamicArray).UserPrincipalName)\n    | extend EntitiesDynamicArray=parse_json(Entities)\n    | mvexpand EntitiesDynamicArray\n    | extend Entitytype = tostring(parse_json(EntitiesDynamicArray).Type)\n    | where Entitytype == \"host\" //parsing entity type host\n    | extend HostName=tostring(parse_json(EntitiesDynamicArray).HostName)\n    | extend DeviceDnsName=tostring(parse_json(EntitiesDynamicArray).DeviceDnsName)\n    | extend RiskScore=tostring(parse_json(EntitiesDynamicArray).RiskScore)\n    | extend OSFamily=tostring(parse_json(EntitiesDynamicArray).OSFamily)\n    | extend OnBoardingStatus=tostring(parse_json(EntitiesDynamicArray).OnBoardingStatus);\nalert\n| join incident on AlertId;\n\n",
+          "queryFrequency": "PT5M",
+          "queryPeriod": "PT5M",
+          "triggerOperator": "GreaterThan",
+          "triggerThreshold": 0,
+          "suppressionDuration": "PT5H",
+          "suppressionEnabled": false,
+          "startTimeUtc": null,
+          "tactics": [],
+          "techniques": [],
+          "alertRuleTemplateName": null,
+          "incidentConfiguration": {
+            "createIncident": true,
+            "groupingConfiguration": {
+              "enabled": false,
+              "reopenClosedIncident": false,
+              "lookbackDuration": "PT5H",
+              "matchingMethod": "AllEntities",
+              "groupByEntities": [],
+              "groupByAlertDetails": [],
+              "groupByCustomDetails": []
+            }
+          },
+          "eventGroupingSettings": {
+            "aggregationKind": "SingleAlert"
+          },
+          "alertDetailsOverride": {
+            "alertDisplayNameFormat": "{{Title}}",
+            "alertDescriptionFormat": "{{Description}}\n\nIncident URI {{IncidentUrl}}\nAlert Link {{AlertLink}}\n",
+            "alertTacticsColumnName": "Tactics",
+            "alertSeverityColumnName": "Severity",
+            "alertDynamicProperties": [
+              {
+                "alertProperty": "ProductName",
+                "value": "ProductName"
+              },
+              {
+                "alertProperty": "RemediationSteps",
+                "value": "RemediationSteps"
+              },
+              {
+                "alertProperty": "AlertLink",
+                "value": "AlertLink"
+              },
+              {
+                "alertProperty": "ProviderName",
+                "value": "ProviderName"
+              },
+              {
+                "alertProperty": "ExtendedLinks",
+                "value": "ExtendedLinks"
+              },
+              {
+                "alertProperty": "Techniques",
+                "value": "Techniques"
+              },
+              {
+                "alertProperty": "ProductComponentName",
+                "value": "ProductComponentName"
+              },
+              {
+                "alertProperty": "ConfidenceLevel",
+                "value": "ConfidenceLevel"
+              },
+              {
+                "alertProperty": "ConfidenceScore",
+                "value": "ConfidenceScore"
+              }
+            ]
+          },
+          "customDetails": {
+            "IncidentURI": "IncidentUrl",
+            "UserPrincipalName": "UserPrincipalName"
+          },
+          "entityMappings": [
+            {
+              "entityType": "Account",
+              "fieldMappings": [
+                {
+                  "identifier": "Name",
+                  "columnName": "username"
+                },
+                {
+                  "identifier": "UPNSuffix",
+                  "columnName": "UPNSuffix"
+                }
+              ]
+            },
+            {
+              "entityType": "Host",
+              "fieldMappings": [
+                {
+                  "identifier": "HostName",
+                  "columnName": "HostName"
+                },
+                {
+                  "identifier": "OSFamily",
+                  "columnName": "OSFamily"
+                },
+                {
+                  "identifier": "DnsDomain",
+                  "columnName": "DeviceDnsName"
+                }
+              ]
+            }
+          ],
+          "sentinelEntitiesMappings": null,
+          "templateVersion": null
+        }
+      }
+    ]
+  }
+  
