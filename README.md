@@ -2,4 +2,4 @@
 
 
 # az.sentinel-security-content
-This repository hold custom created Microsoft Sentinel content
+This repository holds custom Microsoft Sentinel content
